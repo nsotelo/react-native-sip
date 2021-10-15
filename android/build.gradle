@@ -29,13 +29,12 @@ def getExtOrIntegerDefault(name) {
 android {
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
   defaultConfig {
-    minSdkVersion 16
+    minSdkVersion 23
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-    
   }
-  
+
   buildTypes {
     release {
       minifyEnabled false
@@ -54,6 +53,14 @@ repositories {
   mavenCentral()
   jcenter()
   google()
+  maven {
+    name "linphone.org maven repository"
+    url "https://linphone.org/maven_repository/"
+    content {
+      includeGroup "org.linphone"
+    }
+  }
+
 
   def found = false
   def defaultDir = null
@@ -127,4 +134,5 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  implementation "org.linphone:linphone-sdk-android:5.0+"
 }

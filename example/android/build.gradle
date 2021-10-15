@@ -2,9 +2,10 @@
 
 buildscript {
     ext {
-        minSdkVersion = 16
+        minSdkVersion = 23
         compileSdkVersion = 29
         targetSdkVersion = 29
+        ndkVersion = "21.4.7075529"
     }
     repositories {
         google()
@@ -35,5 +36,13 @@ allprojects {
         mavenCentral()
         jcenter()
         maven { url 'https://www.jitpack.io' }
+
+        maven {
+            name "linphone.org maven repository"
+            url "https://linphone.org/maven_repository/"
+            content {
+                includeGroup "org.linphone"
+            }
+        }
     }
 }

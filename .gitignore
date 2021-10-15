@@ -31,14 +31,29 @@ project.xcworkspace
 
 # Android/IJ
 #
+*.class
+*.ctxt
+*.ear
+*.hprof
+*.jar
+*.log
+*.nar
+*.rar
+*.tar.gz
+*.war
+*.zip
 .classpath
 .cxx
 .gradle
 .idea
+.mtj.tmp/
 .project
 .settings
-local.properties
 android.iml
+local.properties
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
 
 # Cocoapods
 #
