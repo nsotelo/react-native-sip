@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useSIP, useCall } from 'react-native-sip'
+import { useSIP, useCall } from 'react-native-sip-phone'
 import { StyleSheet, View, Button, TextInput } from 'react-native'
 
 type CallState =

@@ -1,5 +1,5 @@
 {
-  "name": "react-native-sip",
+  "name": "react-native-sip-phone",
   "version": "0.1.0",
   "description": "Make SIP calls from react-native using Linphone SDK",
   "main": "lib/commonjs/index",
@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "react-native-sip.podspec",
+    "react-native-sip-phone.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!ios/build",
@@ -36,13 +36,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/Woonivers/react-native-sip",
+  "repository": "https://github.com/Woonivers/react-native-sip-phone",
   "author": "Nigel Sotelo <nigel@woonivers.com> (https://github.com/Woonivers)",
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/Woonivers/react-native-sip/issues"
+    "url": "https://github.com/Woonivers/react-native-sip-phone/issues"
   },
-  "homepage": "https://github.com/Woonivers/react-native-sip#readme",
+  "homepage": "https://github.com/Woonivers/react-native-sip-phone#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

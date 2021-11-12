@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "react-native-sip": ["./src/index"]
+      "react-native-sip-phone": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

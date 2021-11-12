@@ -1,6 +1,6 @@
 {
-  "name": "react-native-sip-example",
-  "description": "Example app for react-native-sip",
+  "name": "react-native-sip-phone-example",
+  "description": "Example app for react-native-sip-phone",
   "version": "0.0.1",
   "private": true,
   "scripts": {

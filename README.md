@@ -1,17 +1,17 @@
-# react-native-sip
+# react-native-sip-phone
 
 Make SIP calls from react-native using Linphone SDK
 
 ## Installation
 
 ```sh
-npm install react-native-sip
+npm install react-native-sip-phone
 ```
 
 ## Usage
 
 ```js
-import { multiply } from "react-native-sip";
+import { multiply } from "react-native-sip-phone";
 
 // ...
 
