@@ -38,7 +38,7 @@
   ],
   "repository": "https://github.com/Woonivers/react-native-sip-phone",
   "author": "Nigel Sotelo <nigel@woonivers.com> (https://github.com/Woonivers)",
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/Woonivers/react-native-sip-phone/issues"
   },
