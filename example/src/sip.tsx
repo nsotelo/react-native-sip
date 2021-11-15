@@ -1,6 +1,12 @@
 import React from 'react'
+import Dialpad from './dialpad'
 
-import { useSIP, useCall } from 'react-native-sip-phone'
+import {
+  useSIP,
+  useCall,
+  useAudioDevices,
+  useMicrophone,
+} from 'react-native-sip-phone'
 import { StyleSheet, View, Button, TextInput } from 'react-native'
 
 type CallState =
@@ -68,13 +74,15 @@ function Login(props: LoginProps) {
 }
 
 function PhoneCall() {
+  const [audioDevices, setAudioDevice] = useAudioDevices()
+  const [micEnabled, toggleMicEnabled] = useMicrophone()
   const [callState, setCallState] = React.useState<CallState>('initial')
   const [remoteUri, setRemoteUri] = React.useState('')
 
   const canCall = remoteUri && callState === 'initial'
   const canHangUp = ['ringing', 'in-progress'].includes(callState)
 
-  const { call, hangup } = useCall({
+  const { call, hangup, sendDtmf } = useCall({
     onCallRequested: () => setCallState('requested'),
     onCallRinging: () => setCallState('ringing'),
     onCallConnected: () => setCallState('in-progress'),
@@ -98,13 +106,43 @@ function PhoneCall() {
         textContentType="emailAddress"
         value={remoteUri}
       />
-      <View style={styles.buttonContainer}>
-        <View style={styles.button}>
+      <View style={styles.callButtonContainer}>
+        <View style={styles.callButton}>
           <Button onPress={outboundCall} title="Call" disabled={!canCall} />
         </View>
-        <View style={styles.button}>
+        <View style={styles.callButton}>
           <Button onPress={hangup} title="Hang up" disabled={!canHangUp} />
         </View>
+      </View>
+      <View style={styles.audioButtonContainer}>
+        <View style={styles.audioButton}>
+          <Button
+            onPress={() => setAudioDevice('bluetooth')}
+            title="Bluetooth"
+            disabled={!audioDevices.options.bluetooth}
+          />
+        </View>
+        <View style={styles.audioButton}>
+          <Button
+            onPress={() => setAudioDevice('loudspeaker')}
+            title="Loudspeaker"
+            disabled={!audioDevices.options.loudspeaker}
+          />
+        </View>
+        <View style={styles.audioButton}>
+          <Button
+            onPress={() => setAudioDevice('phone')}
+            title="Phone"
+            disabled={!audioDevices.options.phone}
+          />
+        </View>
+        <View style={styles.audioButton}>
+          <Button
+            onPress={toggleMicEnabled}
+            title={micEnabled ? 'Mute' : 'Unmute'}
+          />
+        </View>
+        <Dialpad sendDtmf={sendDtmf} />
       </View>
     </View>
   )
@@ -122,12 +160,19 @@ export default function SIPDemo() {
 }
 
 const styles = StyleSheet.create({
-  button: {
+  audioButton: {
+    margin: 3,
+  },
+  audioButtonContainer: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  callButton: {
     width: 100,
     height: 60,
     margin: 20,
   },
-  buttonContainer: {
+  callButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -139,9 +184,11 @@ const styles = StyleSheet.create({
     paddingVertical: 100,
   },
   input: {
-    width: 200,
-    borderWidth: 1,
     borderRadius: 6,
+    borderWidth: 1,
     margin: 6,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: 300,
   },
 })

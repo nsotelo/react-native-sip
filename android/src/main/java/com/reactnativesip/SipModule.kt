@@ -1,32 +1,23 @@
 package com.reactnativesip
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Bundle
 import android.util.Log
+import com.facebook.react.bridge.*
 
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule
-
-import org.linphone.core.Account
-import org.linphone.core.Call
-import org.linphone.core.Core
-import org.linphone.core.CoreListenerStub
-import org.linphone.core.Factory
-import org.linphone.core.MediaEncryption
-import org.linphone.core.RegistrationState
-import org.linphone.core.TransportType
+import org.linphone.core.*
 
 
 class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val context = reactContext.applicationContext
+  private val packageManager = context.packageManager
   private val reactContext = reactContext
 
-  private val packageManager = context.getPackageManager()
+  private var bluetoothMic: AudioDevice? = null
+  private var bluetoothSpeaker: AudioDevice? = null
+  private var earpiece: AudioDevice? = null
+  private var loudMic: AudioDevice? = null
+  private var loudSpeaker: AudioDevice? = null
+  private var microphone: AudioDevice? = null
 
   private lateinit var core: Core
 
@@ -38,10 +29,24 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     return "Sip"
   }
 
+  private fun delete() {
+    // To completely remove an Account
+    val account = core.defaultAccount
+    account ?: return
+    core.removeAccount(account)
+
+    // To remove all accounts use
+    core.clearAccounts()
+
+    // Same for auth info
+    core.clearAllAuthInfo()
+  }
+
   private fun sendEvent(eventName: String) {
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
     .emit(eventName, null)
   }
+
 
   @ReactMethod
   fun addListener(eventName: String) {
@@ -49,8 +54,32 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   }
 
   @ReactMethod
-  fun removeListeners(count: Int) {
-    Log.d(TAG, "Removed $count listener(s)")
+  fun bluetoothAudio(promise: Promise) {
+    if (bluetoothMic != null) {
+      core.inputAudioDevice = bluetoothMic
+    }
+
+    if (bluetoothSpeaker != null) {
+      core.outputAudioDevice = bluetoothSpeaker
+    }
+
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun hangUp(promise: Promise) {
+    Log.i(TAG, "Trying to hang up")
+    if (core.callsNb == 0) return
+
+    // If the call state isn't paused, we can get it using core.currentCall
+    val call = if (core.currentCall != null) core.currentCall else core.calls[0]
+    if (call != null) {
+      // Terminating a call is quite simple
+      call.terminate()
+      promise.resolve(null)
+    } else {
+      promise.reject("No call", "No call to terminate")
+    }
   }
 
   @ReactMethod
@@ -61,6 +90,10 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     core.start()
 
     val coreListener = object : CoreListenerStub() {
+      override fun onAudioDevicesListUpdated(core: Core) {
+        sendEvent("AudioDevicesChanged")
+      }
+
       override fun onCallStateChanged(
         core: Core,
         call: Call,
@@ -68,6 +101,11 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
         message: String
       ) {
         when (state) {
+          Call.State.IncomingReceived -> {
+            // Immediately hang up when we receive a call. There's nothing inherently wrong with this
+            // but we don't need it right now, so better to leave it deactivated.
+            call.terminate()
+          }
           Call.State.OutgoingInit -> {
             // First state an outgoing call will go through
             sendEvent("ConnectionRequested")
@@ -112,19 +150,15 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
           else -> {
           }
         }
-
-
       }
     }
 
     core.addListener(coreListener)
     promise.resolve(null)
-
   }
 
   @ReactMethod
   fun login(username: String, password: String, domain: String, promise: Promise) {
-    Log.i(TAG, "Hi")
     val transportType = TransportType.Tls
 
     // To configure a SIP account, we need an Account object and an AuthInfo object
@@ -183,6 +217,26 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   }
 
   @ReactMethod
+  fun loudAudio(promise: Promise) {
+    if (loudMic != null) {
+      core.inputAudioDevice = loudMic
+    } else if (microphone != null) {
+      core.inputAudioDevice = microphone
+    }
+
+    if (loudSpeaker != null) {
+      core.outputAudioDevice = loudSpeaker
+    }
+
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun micEnabled(promise: Promise) {
+    promise.resolve(core.micEnabled())
+  }
+
+  @ReactMethod
   fun outgoingCall(recipient: String, promise: Promise) {
     // As for everything we need to get the SIP URI of the remote and convert it to an Address
     val remoteAddress = Factory.instance().createAddress(recipient)
@@ -210,55 +264,96 @@ class SipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   }
 
   @ReactMethod
-  fun hangUp(promise: Promise) {
-    Log.i(TAG, "Trying to hang up")
-    if (core.callsNb == 0) return
-
-    // If the call state isn't paused, we can get it using core.currentCall
-    val call = if (core.currentCall != null) core.currentCall else core.calls[0]
-    if (call != null) {
-      // Terminating a call is quite simple
-      call.terminate()
-      promise.resolve(null)
-    } else {
-      promise.reject("No call", "No call to terminate")
+  fun phoneAudio(promise: Promise) {
+    if (microphone != null) {
+      core.inputAudioDevice = microphone
     }
+
+    if (earpiece != null) {
+      core.outputAudioDevice = earpiece
+    }
+
+    promise.resolve(true)
   }
 
-  private fun unregister() {
+  @ReactMethod
+  fun removeListeners(count: Int) {
+    Log.d(TAG, "Removed $count listener(s)")
+  }
+
+  @ReactMethod
+  fun scanAudioDevices(promise: Promise) {
+    microphone = null
+    earpiece = null
+    loudSpeaker = null
+    loudMic = null
+    bluetoothSpeaker = null
+    bluetoothMic = null
+
+    for (audioDevice in core.audioDevices) {
+      when (audioDevice.type) {
+        AudioDevice.Type.Microphone -> microphone = audioDevice
+        AudioDevice.Type.Earpiece -> earpiece = audioDevice
+        AudioDevice.Type.Speaker -> if (audioDevice.hasCapability(AudioDevice.Capabilities.CapabilityPlay)) {
+          loudSpeaker = audioDevice
+        } else {
+          loudMic = audioDevice
+        }
+        AudioDevice.Type.Bluetooth -> if (audioDevice.hasCapability(AudioDevice.Capabilities.CapabilityPlay)) {
+          bluetoothSpeaker = audioDevice
+        } else {
+          bluetoothMic = audioDevice
+        }
+        else -> {
+        }
+      }
+    }
+
+    val options = Arguments.createMap()
+    options.putBoolean("phone", earpiece != null && microphone != null)
+    options.putBoolean("bluetooth", bluetoothMic != null || bluetoothSpeaker != null)
+    options.putBoolean("loudspeaker", loudSpeaker != null)
+
+    var current = "phone"
+    if (core.outputAudioDevice?.type == AudioDevice.Type.Bluetooth || core.inputAudioDevice?.type == AudioDevice.Type.Bluetooth) {
+      current = "bluetooth"
+    } else if (core.outputAudioDevice?.type == AudioDevice.Type.Speaker) {
+      current = "loudspeaker"
+    }
+
+    val result = Arguments.createMap()
+    result.putString("current", current)
+    result.putMap("options", options)
+    promise.resolve(result)
+  }
+
+  @ReactMethod
+  fun sendDtmf(dtmf: String, promise: Promise) {
+    core.currentCall?.sendDtmf(dtmf.single())
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun toggleMute(promise: Promise) {
+    val micEnabled = core.micEnabled()
+    core.enableMic(!micEnabled)
+    promise.resolve(!micEnabled)
+  }
+
+  @ReactMethod
+  fun unregister(promise: Promise) {
     // Here we will disable the registration of our Account
     val account = core.defaultAccount
     account ?: return
 
-    val params = account.params
     // Returned params object is const, so to make changes we first need to clone it
-    val clonedParams = params.clone()
+    val params = account.params.clone()
 
-    // Now let's make our changes
-    clonedParams.registerEnabled = false
-
-    // And apply them
-    account.params = clonedParams
-  }
-
-  private fun delete() {
-    // To completely remove an Account
-    val account = core.defaultAccount
-    account ?: return
+    params.registerEnabled = false
+    account.params = params
     core.removeAccount(account)
-
-    // To remove all accounts use
-    core.clearAccounts()
-
-    // Same for auth info
     core.clearAllAuthInfo()
-  }
 
-  // Example method
-  // See https://reactnative.dev/docs/native-modules-android
-  @ReactMethod
-  fun multiply(a: Int, b: Int, promise: Promise) {
-    promise.resolve(a * b)
-
+    promise.resolve(true)
   }
 }

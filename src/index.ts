@@ -1,2 +1,7 @@
 export { SIPProvider, useSIP } from './provider'
-export { useCall } from './native-wrapper'
+export {
+  useCall,
+  useAudioDevices,
+  useMicrophone,
+  DtmfChar,
+} from './native-wrapper'

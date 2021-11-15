@@ -17,6 +17,7 @@ export function SIPProvider({ children = <></> }: SIPProviderProps) {
 
   React.useEffect(() => {
     NativeWrapper.Sip.initialise().then(() => setInitialised(true))
+    return () => NativeWrapper.Sip.unregister.then(() => setInitialised(false))
   }, [])
 
   const sipOperations = {
