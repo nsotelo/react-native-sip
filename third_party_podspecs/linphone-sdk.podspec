@@ -1,4 +1,4 @@
-reactVersion = JSON.parse(File.read(File.join(__dir__, "node_modules", "react-native", "package.json")))["version"]
+reactVersion = JSON.parse(File.read(File.join(__dir__, "../..", "react-native", "package.json")))["version"]
 folly_version = '2021.04.26.00'
 boost_compiler_flags = '-Wno-documentation'
 
