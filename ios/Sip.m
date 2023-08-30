@@ -37,7 +37,8 @@ RCT_EXTERN_METHOD(phoneAudio:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(scanAudioDevices:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(sendDtmf(RCTPromiseResolveBlock)resolve
+RCT_EXTERN_METHOD(sendDtmf:(NSString *)dtmf
+                  withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(toggleMute:(RCTPromiseResolveBlock)resolve
